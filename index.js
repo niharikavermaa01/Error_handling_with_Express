@@ -46,18 +46,24 @@ app.post("/chats",async (req,res,next)=>{
     res.redirect("/chats");
 });
 
-app.get("/chats/:id/edit",async (req,res,next)=>{
-    try{
+
+//in Express 4 we need to write our asyncWrap or try-catch block but 
+//but in express 5 it handles it automatically without asyncWrap nor try catch block.
+//but for better understanding i am trying this.
+
+function asyncWrap (fn){
+    return function(req,res,next){
+        fn(req,res,next).catch((err)=>next(err));
+    };
+}
+app.get("/chats/:id/edit",asyncWrap(async (req,res,next)=>{
         let {id}= req.params;
         let chat = await Chat.findById(id);
         if(!chat){
         throw new ExpressError(404,"ID wrong chat not found")
     }
     res.render("editchat.ejs",{chat})
-    }catch(err){
-        next(err)
-    }
-});
+}));
 
 
 app.put("/chats/:id",async (req,res)=>{
